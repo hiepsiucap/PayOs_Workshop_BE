@@ -56,8 +56,25 @@ const CreateOrderAndPayment = async (req, res) => {
   );
   console.log(payos);
   const data = await payos.createPaymentLink(params);
-  console.log(data);
+  order.paymentLinkId = data.paymentLinkId;
+  await order.save();
   res.status(StatusCodes.OK).json({ data });
+};
+const DeleteOrder = async (req, res) => {
+  const { id, orderCode } = req.query;
+  if (!id || !orderCode) {
+    throw new CustomApiError.BadRequestError("Không tìm thấy đơn hàng của bạn");
+  }
+  const order = await Order.findOne({
+    paymentLinkId: id,
+    _id: orderCode,
+  });
+  if (!order) {
+    throw new CustomApiError.BadRequestError("Hoá đơn không tồn tại");
+  }
+  const user = await User.findByIdAndDelete({ _id: order.User });
+  order.deleteOne();
+  res.status(StatusCodes.OK).json({ msg: "xoá thành công" });
 };
 const CreateOrder = async (req, res) => {
   const { User, Subscription, status, total, description } = req.body;
@@ -134,6 +151,7 @@ const GetOrder = async (req, res) => {
 };
 module.exports = {
   CreateOrder,
+  DeleteOrder,
   CreateOrderAndPayment,
   ConfirmPayment,
   GetOrder,
