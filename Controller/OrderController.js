@@ -114,4 +114,9 @@ const GetOrder = async (req, res) => {
     .status(StatusCodes.OK)
     .json({ subscription, email: user.email, password });
 };
-module.exports = { CreateOrder, CreateOrderAndPayment, ConfirmPayment };
+module.exports = {
+  CreateOrder,
+  CreateOrderAndPayment,
+  ConfirmPayment,
+  GetOrder,
+};
