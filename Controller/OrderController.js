@@ -65,14 +65,14 @@ const CreateOrder = async (req, res) => {
   res.status(StatusCodes.OK).json({ order });
 };
 const ConfirmPayment = async (req, res) => {
-  const payos = new PayOS(
-    process.env.CLIENT_ID,
-    process.env.API_KEY,
-    process.env.CHECK_SUM
-  );
+  // const payos = new PayOS(
+  //   process.env.CLIENT_ID,
+  //   process.env.API_KEY,
+  //   process.env.CHECK_SUM
+  // );
   const webhookBody = req.body;
   if (webhookBody) {
-    const paymentData = payos.verifyPaymentWebhookData(webhookBody);
+    // const paymentData = payos.verifyPaymentWebhookData(webhookBody);
   }
   return res.status(StatusCodes.OK).json({ msg: "Activie" });
 };
