@@ -25,10 +25,8 @@ const CreateOrderAndPayment = async (req, res) => {
   const order = await Order.create({
     User: user,
     Subscription: subscirption,
-    total: subscirption.price,
-    description: `Đăng kí gói ${
-      subscirption.title === "Student" ? "Edu" : subscirption.title
-    } ${subscirption.time} tháng `,
+    total: subscirption.price * subscirption.time,
+    description: `ĐK gói ${subscirption.title} ${subscirption.time} tháng `,
   });
   if (!order) {
     throw new CustomApiError.BadRequestError(
@@ -41,7 +39,7 @@ const CreateOrderAndPayment = async (req, res) => {
     description: order.description,
     buyerName: user.name,
     buyerEmail: user.email,
-    cancelUrl: "https://flenvn.netlify.app/playgame",
+    cancelUrl: "http://localhost:5173/cancel",
     returnUrl: "https://flenvn.netlify.app/wordbank",
   };
   console.log(params);
@@ -65,5 +63,9 @@ const CreateOrder = async (req, res) => {
     description,
   });
   res.status(StatusCodes.OK).json({ order });
+};
+const ConfirmPassword = () => {
+  const webhookBody = req.body;
+  const paymentData = payos.verifyPaymentWebhookData(webhookBody);
 };
 module.exports = { CreateOrder, CreateOrderAndPayment };
