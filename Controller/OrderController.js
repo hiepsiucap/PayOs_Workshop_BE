@@ -17,9 +17,15 @@ const CreateOrderAndPayment = async (req, res) => {
       "Kiểm tra lại gói đăng kí của bạn"
     );
   }
+
   if (!email || !name) {
     throw new CustomApiError.BadRequestError("Kiểm tra lại thông tin cá nhân");
   }
+  const check = await User.findOne({ email: email });
+  if (check)
+    throw new CustomApiError.BadRequestError(
+      "Email đã tồn tại vui lòng thử email khác"
+    );
   const password = generateRandomPassword();
   const user = await User.create({ password, name, email });
   const order = await Order.create({
@@ -101,18 +107,30 @@ const GetOrder = async (req, res) => {
     paymentLinkId: id,
     _id: orderCode,
   });
-  if (order.status !== "PROCESSING")
-    throw new CustomApiError.BadRequestError("Hoá đơn của bạn đã hết hạn ");
+  if (!order) {
+    throw new CustomApiError.BadRequestError("Hoá đơn không tồn tại");
+  }
+  // if (order.status !== "PROCESSING")
+  //   throw new CustomApiError.BadRequestError("Hoá đơn của bạn đã hết hạn ");
   const password = generateRandomPassword();
   const subscription = await Subscription.findOne({ _id: order.Subscription });
   const user = await User.findOne({ _id: order.User });
+  if (!subscription || !user)
+    throw new CustomApiError.BadRequestError(
+      "Không tồn tại user và subscription"
+    );
   user.password = password;
+  user.IsVerification = true;
   user.subscription = subscription;
   user.validDay.setMonth(user.validDay.getMonth() + subscription.time);
   await user.save();
-  return res
-    .status(StatusCodes.OK)
-    .json({ subscription, email: user.email, password });
+  return res.status(StatusCodes.OK).json({
+    subscription,
+    name: user.name,
+    email: user.email,
+    password,
+    order,
+  });
 };
 module.exports = {
   CreateOrder,
