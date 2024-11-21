@@ -64,8 +64,13 @@ const CreateOrder = async (req, res) => {
   });
   res.status(StatusCodes.OK).json({ order });
 };
-const ConfirmPassword = () => {
+const ConfirmPayment = async () => {
+  const payos = new PayOS(
+    process.env.CLIENT_ID,
+    process.env.API_KEY,
+    process.env.CHECK_SUM
+  );
   const webhookBody = req.body;
   const paymentData = payos.verifyPaymentWebhookData(webhookBody);
 };
-module.exports = { CreateOrder, CreateOrderAndPayment };
+module.exports = { CreateOrder, CreateOrderAndPayment, ConfirmPayment };
