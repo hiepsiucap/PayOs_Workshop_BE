@@ -29,6 +29,10 @@ const OrderSchema = new Schema({
     type: String,
     required: true,
   },
+  paymentLinkId: {
+    type: String,
+    default: "",
+  },
 });
 
 OrderSchema.pre("save", async function (next) {

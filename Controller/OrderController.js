@@ -71,11 +71,47 @@ const ConfirmPayment = async (req, res) => {
     process.env.CHECK_SUM
   );
   const webhookBody = req.body;
-  if (webhookBody) {
-    const paymentData = payos.verifyPaymentWebhookData(webhookBody);
-    console.log(paymentData);
-    return res.status(StatusCodes.OK).json({ paymentData });
+  if (!webhookBody) {
+    throw new CustomApiError.BadRequestError(
+      "Không thành công vui lòng thử lại"
+    );
   }
-  return res.status(StatusCodes.OK).json({ msg });
+  const paymentData = payos.verifyPaymentWebhookData(webhookBody);
+  if (!paymentData) {
+    throw new CustomApiError.BadRequestError(
+      "Dữ liệu không đúng vui lòng thử lại"
+    );
+  }
+  if (paymentData.desc !== "success")
+    throw new CustomApiError.BadRequestError("Thanh toán không thành công");
+  const order = await Order.findOne({ _id: paymentData.orderCode });
+  if (!order)
+    throw new CustomApiError.BadRequestError("Không tìm thấy đơn hàng");
+  order.status = "PROCESSING";
+  order.paymentLinkId = paymentData.paymentLinkId;
+  await order.save();
+  return res.status(StatusCodes.OK).json({ paymentData });
+};
+const GetOrder = async (req, res) => {
+  const { id, orderCode } = req.query;
+  if (!id || !orderCode) {
+    throw new CustomApiError.BadRequestError("Không tìm thấy đơn hàng của bạn");
+  }
+  const order = await Order.findOne({
+    paymentLinkId: id,
+    _id: orderCode,
+  });
+  if (order.status !== "PROCESSING")
+    throw new CustomApiError.BadRequestError("Hoá đơn của bạn đã hết hạn ");
+  const password = generateRandomPassword();
+  const subscription = await Subscription.findOne({ _id: order.Subscription });
+  const user = await User.findOne({ _id: order.User });
+  user.password = password;
+  user.subscription = subscription;
+  user.validDay.setMonth(user.validDay.getMonth() + subscription.time);
+  await user.save();
+  return res
+    .status(StatusCodes.OK)
+    .json({ subscription, email: user.email, password });
 };
 module.exports = { CreateOrder, CreateOrderAndPayment, ConfirmPayment };
