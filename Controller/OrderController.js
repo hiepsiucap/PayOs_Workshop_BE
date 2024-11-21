@@ -64,7 +64,7 @@ const CreateOrder = async (req, res) => {
   });
   res.status(StatusCodes.OK).json({ order });
 };
-const ConfirmPayment = async () => {
+const ConfirmPayment = async (req, res) => {
   const payos = new PayOS(
     process.env.CLIENT_ID,
     process.env.API_KEY,
@@ -72,5 +72,6 @@ const ConfirmPayment = async () => {
   );
   const webhookBody = req.body;
   const paymentData = payos.verifyPaymentWebhookData(webhookBody);
+  res.status(StatusCodes.OK).json({ msg: "Activie" });
 };
 module.exports = { CreateOrder, CreateOrderAndPayment, ConfirmPayment };
