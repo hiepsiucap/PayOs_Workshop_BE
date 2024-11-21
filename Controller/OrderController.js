@@ -39,8 +39,8 @@ const CreateOrderAndPayment = async (req, res) => {
     description: order.description,
     buyerName: user.name,
     buyerEmail: user.email,
-    cancelUrl: "http://localhost:5173/cancel",
-    returnUrl: "https://flenvn.netlify.app/wordbank",
+    cancelUrl: `${process.env.FRONTEND_API}/cancel`,
+    returnUrl: `${process.env.FRONTEND_API}/success/12`,
   };
   console.log(params);
   const payos = new PayOS(
