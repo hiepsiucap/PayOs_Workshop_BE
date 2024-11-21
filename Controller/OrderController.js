@@ -71,7 +71,9 @@ const ConfirmPayment = async (req, res) => {
     process.env.CHECK_SUM
   );
   const webhookBody = req.body;
-  const paymentData = payos.verifyPaymentWebhookData(webhookBody);
+  if (webhookBody) {
+    const paymentData = payos.verifyPaymentWebhookData(webhookBody);
+  }
   res.status(StatusCodes.OK).json({ msg: "Activie" });
 };
 module.exports = { CreateOrder, CreateOrderAndPayment, ConfirmPayment };
