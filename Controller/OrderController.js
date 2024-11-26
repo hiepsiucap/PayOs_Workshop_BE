@@ -5,6 +5,7 @@ const CustomApiError = require("../errors");
 const PayOS = require("@payos/node");
 const Order = require("../model/Order");
 const crypto = require("crypto");
+const SendBill = require("../utilz/SendBill");
 require("dotenv").config();
 const User = require("../model/User");
 const { generateRandomPassword } = require("../utilz/CreatePassword");
@@ -127,8 +128,8 @@ const GetOrder = async (req, res) => {
   if (!order) {
     throw new CustomApiError.BadRequestError("Hoá đơn không tồn tại");
   }
-  // if (order.status !== "PROCESSING")
-  //   throw new CustomApiError.BadRequestError("Hoá đơn của bạn đã hết hạn ");
+  if (order.status !== "PROCESSING")
+    throw new CustomApiError.BadRequestError("Hoá đơn của bạn đã hết hạn ");
   const password = generateRandomPassword();
   const subscription = await Subscription.findOne({ _id: order.Subscription });
   const user = await User.findOne({ _id: order.User });
@@ -141,6 +142,19 @@ const GetOrder = async (req, res) => {
   user.subscription = subscription;
   user.validDay.setMonth(user.validDay.getMonth() + subscription.time);
   await user.save();
+  order.status = "COMPLETED";
+  order.save();
+  SendBill({
+    name: user.name,
+    user: user.email,
+    password: password,
+    price: order.total,
+    billId: order._id,
+    title: subscription.title,
+    endDate: user.validDay,
+    email: user.email,
+    startDate: new Date(),
+  });
   return res.status(StatusCodes.OK).json({
     subscription,
     name: user.name,
